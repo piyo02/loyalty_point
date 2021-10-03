@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+        <!-- loyalty level config -->
+        <record id="view_loyalty_level_form" model="ir.ui.view">
+            <field name="name">loyalty.level.configuration.form.view</field>
+            <field name="model">loyalty.level.configuration</field>
+            <field name="arch" type="xml">
+                <form>
+                    <div>
+                        <field name="name"/>
+                    </div>
+                    <div>
+                        <group>
+                            <group>
+                                <field name="minimum_purchase"/>
+                                <field name="points"/>
+                                <field name="expired_day"/>
+                            </group>
+                            <group>
+                                <field name="point_calculation"/>
+                                <field name="to_amount"/>
+                            </group>
+                        </group>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="loyalty_point_redeem_tree_view" model="ir.ui.view">
+            <field name="name">loyalty.level.configuration.tree.view</field>
+            <field name="model">loyalty.level.configuration</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name" />
+                    <field name="minimum_purchase"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_loyalty_level_configuration" model="ir.actions.act_window">
+            <field name="name">Configure Loyalty Level</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">loyalty.level.configuration</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+
+        <!-- loyalty config -->
+        <record id="view_loyalty_config_tree" model="ir.ui.view">
+            <field name="name">loyalty.config.tree</field>
+            <field name="model">loyalty.config</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="loyalty_journal_id"/>
+                    <field name="account_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_loyalty_config_form" model="ir.ui.view">
+            <field name="name">loyalty.config.form</field>
+            <field name="model">loyalty.config</field>
+            <field name="arch" type="xml">
+                <form string="Loyalty Config">
+                    <sheet>
+                        <group string="Loyalty" cols="4">
+                            <field name="enable_loyalty"/>
+                            <field name="loyalty_journal_id"/>
+                            <field name="account_id"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_loyalty_config" model="ir.actions.act_window">
+            <field name="name">Configure Loyalty</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">loyalty.config</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <!-- menu -->
+		<menuitem id="menu_point_config_loyalty" 
+                  name="Loyalty" 
+                  parent="sales_team.menu_sale_config" 
+        />
+
+        <menuitem id="menu_loyalty_level_configuration" 
+                  name="Level" 
+                  parent="menu_point_config_loyalty" 
+                  action="action_loyalty_level_configuration" 
+                  groups="base.group_system"
+        />
+
+        <menuitem id="menu_loyalty_config" 
+                  name="Config" 
+                  parent="menu_point_config_loyalty" 
+                  action="action_loyalty_config" 
+                  groups="base.group_system"
+        />
+
+</odoo>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+        <record id="form_redeem_inherit_view_account_payment_invoice_form" model="ir.ui.view">
+            <field name="name">account.payment.invoice.form</field>
+            <field name="model">account.payment</field>
+            <field name="inherit_id" ref="account.view_account_payment_invoice_form" />
+            <field name="priority" eval="20"/>
+            <field name="arch" type="xml">
+                <div name="/form/sheet/group/group" position="inside">
+                    <field name="redeem_point"/>
+                    <field name="redeem_amount"/>
+                    <field name="total_points"/>
+                    <!-- <field name="loyalty_point"/> -->
+                </div>
+            </field>
+        </record>
+
+</odoo>

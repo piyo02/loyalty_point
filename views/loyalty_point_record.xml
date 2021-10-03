@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- earned point in pos -->
+    <!-- tree -->
+    <record id="earned_loyalty_point_from_pos_tree_view" model="ir.ui.view">
+        <field name="name">loyalty.point.record.tree.view</field>
+        <field name="model">loyalty.point.record</field>
+        <field name="arch" type="xml">
+            <tree create='0'>
+                <field name="pos_order_id" />
+                <field name="partner_id"/>
+                <field name="points"/>
+                <field name="expired_date"/>
+            </tree>
+        </field>
+    </record>
+    <!-- form -->
+    <record id="view_earned_loyalty_point_from_pos_form" model="ir.ui.view">
+        <field name="name">loyalty.point.record.form.view</field>
+        <field name="model">loyalty.point.record</field>
+        <field name="arch" type="xml">
+            <form>
+                <div>
+                    <field name="pos_order_id"/>
+                </div>
+                <div>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="points"/>
+                            <field name="expired_date"/>
+                        </group>
+                    </group>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- redeem point in pos -->
+    <!-- tree -->
+    <record id="redeem_point_in_pos_tree_view" model="ir.ui.view">
+        <field name="name">redeem.loyalty.point.record.tree.view</field>
+        <field name="model">redeem.loyalty.point.record</field>
+        <field name="arch" type="xml">
+            <tree create='0'>
+                <field name="pos_order_id" />
+                <field name="partner_id" />
+                <field name="redeem_date" />
+                <field name="points" />
+                <field name="redeem_amount" />
+            </tree>
+        </field>
+    </record>
+    <!-- form -->
+    <record id="view_redeem_point_in_pos_form" model="ir.ui.view">
+        <field name="name">redeem.loyalty.point.record.form.view</field>
+        <field name="model">redeem.loyalty.point.record</field>
+        <field name="arch" type="xml">
+            <form>
+                <div>
+                    <field name="pos_order_id"/>
+                </div>
+                <div>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="points"/>
+                        </group>
+                        <group>
+                            <field name="redeem_date"/>
+                            <field name="redeem_amount"/>
+                        </group>
+                    </group>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- action in pos -->
+    <record id="action_earned_loyalty_point_from_pos" model="ir.actions.act_window">
+        <field name="name">Earned Loyalty Point from POS</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">loyalty.point.record</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <record id="action_redeem_point_in_pos" model="ir.actions.act_window">
+        <field name="name">Redeem Point in POS</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">redeem.loyalty.point.record</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- menu in pos -->
+    <menuitem id="menu_loyalty_point_in_pos" 
+              name="Loyalty" 
+              parent="point_of_sale.menu_point_root" 
+              groups="point_of_sale.group_pos_manager"
+    />
+    <menuitem id="menu_earned_loyalty_point_from_pos" 
+              name="Earned Loyalty Point" 
+              parent="menu_loyalty_point_in_pos" 
+              action="action_earned_loyalty_point_from_pos" 
+              groups="base.group_system"
+    />
+    <menuitem id="menu_redeem_point_in_pos" 
+              name="Redeem Point" 
+              parent="menu_loyalty_point_in_pos" 
+              action="action_redeem_point_in_pos" 
+              groups="base.group_system"
+    />
+
+
+    <!-- earned point in so -->
+    <!-- tree -->
+    <record id="earned_loyalty_point_from_so_tree_view" model="ir.ui.view">
+        <field name="name">loyalty.point.record.tree.view</field>
+        <field name="model">loyalty.point.record</field>
+        <field name="arch" type="xml">
+            <tree create='0'>
+                <field name="sale_order_id" />
+                <field name="partner_id"/>
+                <field name="points"/>
+                <field name="expired_date"/>
+            </tree>
+        </field>
+    </record>
+    <!-- form -->
+    <record id="view_earned_loyalty_point_from_so_form" model="ir.ui.view">
+        <field name="name">loyalty.point.record.form.view</field>
+        <field name="model">loyalty.point.record</field>
+        <field name="arch" type="xml">
+            <form>
+                <div>
+                    <field name="sale_order_id"/>
+                </div>
+                <div>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="points"/>
+                            <field name="expired_date"/>
+                        </group>
+                    </group>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- redeem point in so -->
+    <!-- tree -->
+    <record id="redeem_point_in_so_tree_view" model="ir.ui.view">
+        <field name="name">redeem.loyalty.point.record.tree.view</field>
+        <field name="model">redeem.loyalty.point.record</field>
+        <field name="arch" type="xml">
+            <tree create='0'>
+                <field name="sale_order_id" />
+                <field name="partner_id" />
+                <field name="redeem_date" />
+                <field name="points" />
+                <field name="redeem_amount" />
+            </tree>
+        </field>
+    </record>
+    <!-- form -->
+    <record id="view_redeem_point_in_so_form" model="ir.ui.view">
+        <field name="name">redeem.loyalty.point.record.form.view</field>
+        <field name="model">redeem.loyalty.point.record</field>
+        <field name="arch" type="xml">
+            <form>
+                <div>
+                    <field name="sale_order_id"/>
+                </div>
+                <div>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="points"/>
+                        </group>
+                        <group>
+                            <field name="redeem_date"/>
+                            <field name="redeem_amount"/>
+                        </group>
+                    </group>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- action in so -->
+    <record id="action_earned_loyalty_point_from_so" model="ir.actions.act_window">
+        <field name="name">Earned Loyalty Point from Sale Order</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">loyalty.point.record</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <record id="action_redeem_point_in_so" model="ir.actions.act_window">
+        <field name="name">Redeem Point in Sale Order</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">redeem.loyalty.point.record</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- menu in so -->
+    <menuitem id="menu_loyalty_point_in_so" 
+              name="Loyalty" 
+              parent="sales_team.menu_base_partner"
+              sequence="10"
+    />
+    <menuitem id="menu_earned_loyalty_point_from_so" 
+              name="Earned Loyalty Point" 
+              parent="menu_loyalty_point_in_so" 
+              action="action_earned_loyalty_point_from_so" 
+              groups="base.group_system"
+    />
+    <menuitem id="menu_redeem_point_in_so" 
+              name="Redeem Point" 
+              parent="menu_loyalty_point_in_so" 
+              action="action_redeem_point_in_so" 
+              groups="base.group_system"
+    />
+
+</odoo>

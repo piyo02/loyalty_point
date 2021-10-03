@@ -1,0 +1,5 @@
+import loyalty
+import point_of_sale
+import res_company
+import res_partner
+import sale_order
