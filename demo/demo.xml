@@ -1,0 +1,29 @@
+<odoo>
+    <data>
+
+        <record id="data_demo_loyalty_level_configuration_1" model="loyalty.level.configuration">
+            <field name="name">Gold</field>
+            <field name="expired_day">90</field>
+            <field name="minimum_purchase">100</field>
+            <field name="point_calculation">3.00</field>
+            <field name="points">1</field>
+            <field name="to_amount">1</field>
+        </record>
+        
+        <record id="data_demo_loyalty_level_configuration_2" model="loyalty.level.configuration">
+            <field name="name">Silver</field>
+            <field name="expired_day">40</field>
+            <field name="minimum_purchase">400</field>
+            <field name="point_calculation">2.00</field>
+            <field name="points">1</field>
+            <field name="to_amount">1</field>
+        </record>
+
+        <record id="data_demo_loyalty_config_1" model="loyalty.config">
+            <field name="enable_loyalty">True</field>
+            <field model="account.journal" name="loyalty_journal_id" search="[('id', '=', 9)]"/>
+            <field model="account.account" name="account_id" search="[('id', '=', 30)]"/>
+        </record>
+
+    </data>
+</odoo>

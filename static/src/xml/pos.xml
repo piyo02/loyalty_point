@@ -3,7 +3,7 @@
 
     <t t-extend="PaymentScreenWidget">
 		<t t-jquery="div.payment-buttons" t-operation="append">
-			<div class='button js_redeem_loyalty_point oe_hidden'>
+			<div class='button js_redeem_loyalty_point'>
                 <i class='fa fa-gift' /> 
                 <span>
                 	Redeem Loyalty
@@ -16,7 +16,7 @@
          <div class="modal-dialog">
             <div class="popup popup-redeem-loyalty">
             	<p class="title">Redeem Loyalty Points</p>
-            	<t t-if="widget.pos.get_order().is_member and widget.pos.get_order().get_client()">
+            	<t t-if="widget.pos.get_order().get_client() and widget.pos.get_order().get_client().member_status and widget.pos.get_order().get_client()">
             		<div class="loyalty_info">
 		            	<table>
 							<colgroup>
@@ -24,7 +24,7 @@
 							</colgroup>
 		            		<tr>
 		            			<td>Your Total Points: </td>
-		            			<td><t t-esc="widget.pos.get_order().get_client().remaining_loyalty_points.toFixed(2)" /></td>
+		            			<td><t t-esc="widget.pos.get_order().get_client().remaining_loyalty_points.toFixed(2) - widget.pos.get_order().get_loyalty_redeemed_point()" /></td>
 		            		</tr>
 		            		<tr>
 		            			<td> <t t-esc="widget.pos.loyalty_level_configuration[ widget.pos.get_order().attributes.client.member_loyalty_level_id[0] ].points" /> Point = </td>
@@ -39,6 +39,8 @@
 		            			<td><span class="point_to_amount"></span></td>
 		            		</tr>
 		            	</table>
+						<br/>
+						<!-- <table id="table_loyalty_points"><tbody></tbody></table> -->
 	            	</div>
             	</t>
             	<div class="footer">
@@ -57,7 +59,7 @@
     <t t-extend="OrderWidget">
 		<t t-jquery="div.order-scroller" t-operation="append">
 			<t t-if="orderlines.length > 0">
-				<!-- <t t-if="widget.pos and widget.pos.get_order().is_member"> -->
+				<!-- <t t-if="widget.pos and widget.pos.get_order().get_client().member_status"> -->
 					<div class="loyalty_info_cart">
 						<span class="label">Memperoleh <span class="value">0</span> Loyalty Point (Dapat Berubah)</span> 
 					</div>
@@ -82,11 +84,11 @@
         <t t-jquery="div.client-details-right" t-operation="append">
 			<div class='client-detail'>
 				<span class='label'>Total loyalty Points</span>
-				<t t-if='partner.total_points'>
-					<span class='detail client-loyalty'><t t-esc='partner.total_points'/></span>
+				<t t-if='partner.total_remaining_points'>
+					<span class='detail client-loyalty'><t t-esc='partner.total_remaining_points'/></span>
 				</t>
 				<t t-if='!partner.total_points'>
-					<span class='detail client-loyalty empty'>N/A</span>
+					<span class='detail total_remaining_points-loyalty empty'>N/A</span>
 				</t>
 			</div>
         </t>

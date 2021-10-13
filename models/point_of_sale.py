@@ -19,6 +19,17 @@ class PosOrderPoint(models.Model):
     partner_id = fields.Many2one('res.partner', string='Customer', required=True)
     points = fields.Float(string='Points')
     expired_date = fields.Datetime(string='Expired Date', compute='_calculate_expired_date')
+    status = fields.Integer('Status', compute='_status_point')
+    source = fields.Selection([('so', 'Sale Order'), ('pos', 'Point of Sale')], string='Source Point', default='pos')
+
+    @api.multi
+    def _status_point(self):
+        for rec in self:
+            expired_date = datetime.now() + timedelta(days=rec.partner_id.member_loyalty_level_id.expired_day)
+            if rec.expired_date < expired_date:
+                rec.status = 0
+            else:
+                rec.status = 1
 
     @api.multi
     def _calculate_expired_date(self):
@@ -59,13 +70,15 @@ class PosOrder(models.Model):
                 ('id', '=', res.partner_id.member_loyalty_level_id.id)
             ], limit=1)
             if loyalty_level_id:
-                if order.get('loyalty_earned_point') > 0:
+                if order.get('loyalty_earned_point') > 0 and res.partner_id.member_status:
                     point_vals = {
                         'amount_total': (float(order.get('loyalty_earned_point')) * loyalty_level_id.to_amount) / loyalty_level_id.points,
                         'expired_date': datetime.now() + timedelta(days=loyalty_level_id.expired_day),
                         'partner_id': res.partner_id.id,
                         'points': order.get('loyalty_earned_point'),
                         'pos_order_id': res.id,
+                        'status': 1,
+                        'source': 'pos'
                     }
                     self.env['pos.order.point'].create(point_vals)
                     self.env['loyalty.point.record'].create(point_vals)

@@ -1,4 +1,8 @@
 from odoo import fields, models, api
+from datetime import datetime, timedelta
+
+import logging
+_logger = logging.getLogger(__name__)
 
 class ResPartner(models.Model):
     _inherit = 'res.partner'
@@ -45,12 +49,16 @@ class ResPartner(models.Model):
     def _calculate_remaining_loyalty(self):
         LoyaltyPointRecord = self.env['loyalty.point.record'];
         RedeemLoyaltyPointRecord = self.env['redeem.loyalty.point.record']
+        
         for partner in self:
             points_earned = 0.00
             amount_earned = 0.00
             points_redeemed = 0.00
             amount_redeemed = 0.00
-            for earned_loyalty in LoyaltyPointRecord.search([('partner_id', '=', partner.id)]):
+            for earned_loyalty in LoyaltyPointRecord.search([
+                ('partner_id', '=', partner.id),
+                ('status', '=', 1),
+            ]):
                 points_earned += earned_loyalty.points
                 amount_earned += earned_loyalty.amount_total
             for redeemed_loyalty in RedeemLoyaltyPointRecord.search([('partner_id', '=', partner.id)]):

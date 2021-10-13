@@ -33,13 +33,36 @@
             <field name="priority">2</field>
             <field name="arch" type="xml">
                 <tree string="Loyalty Point" create="0">
-                    <field name="pos_order_id" attrs="{'invisible': [('pos_order_id', '=', False)]}"/>
-                    <field name="sale_order_id" attrs="{'invisible': [('sale_order_id', '=', False)]}"/>
+                    <field name="pos_order_id" />
+                    <field name="sale_order_id" />
+                    <field name="expired_date"/> 
                     <field name="points"/>
-                    <field name="expired_date"/>
                 </tree>
             </field>
         </record>
+
+        <record id="view_earned_loyalty_point_form" model="ir.ui.view">
+            <field name="name">loyalty.point.record.form.view</field>
+            <field name="model">loyalty.point.record</field>
+            <field name="arch" type="xml">
+                <form>
+                    <div>
+                        <group>
+                            <group>
+                                <field name="pos_order_id" attrs="{'invisible': [('pos_order_id', '=', False)]}"/>
+                                <field name="sale_order_id" attrs="{'invisible': [('sale_order_id', '=', False)]}"/>
+                                <field name="partner_id"/>
+                            </group>
+                            <group>
+                                <field name="points"/>
+                                <field name="expired_date"/>
+                                <field name="source"/>
+                            </group>
+                        </group>
+                    </div>
+                </form>
+            </field>
+        </record> 
 
         <record id="act_res_partner_2_loyalty_point" model="ir.actions.act_window">
             <field name="name">Loyalty Point</field>
@@ -47,6 +70,7 @@
             <field name="type">ir.actions.act_window</field>
             <field name="view_type">form</field>
             <field name="view_id" ref="view_loyalty_point_history_tree"/>
+            <field name="domain">[('partner_id', '=', active_id)]</field>
             <field name="context">{'search_default_partner_id': active_id}</field>
         </record>
 

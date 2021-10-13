@@ -59,8 +59,8 @@ odoo.define('loyalty_point.pos', function (require) {
 			for( var i = 0; i < partners.length; i++ ) {
 				var partner = partners[i];
 				var old_partner = this.partner_by_id[partner.id];
-				if(partners && old_partner && partner.total_points !== old_partner.total_points){
-	            	old_partner['total_points'] = partner.total_points;
+				if(partners && old_partner && partner.total_remaining_points !== old_partner.total_remaining_points){
+	            	old_partner['total_remaining_points'] = partner.total_remaining_points;
 	            }
 			}
 			return this._super(partners);
@@ -99,8 +99,7 @@ odoo.define('loyalty_point.pos', function (require) {
 			const loyalty_config = this.pos.loyalty_level_configuration[member_loyalty_level_id];
 
 			if( redeem_point_input.val() && $.isNumeric(redeem_point_input.val()) && Number(redeem_point_input.val()) > 0 ) {
-				var remaining_loyalty_points = order.get_client().remaining_loyalty_points - order.get_loyalty_redeemed_point(); //
-				var total_points = order.get_client().total_points;
+				var remaining_loyalty_points = order.get_client().remaining_loyalty_points - order.get_loyalty_redeemed_point(); 
 				if( Number(redeem_point_input.val()) <= remaining_loyalty_points ) {
 					var amount_to_redeem = (Number(redeem_point_input.val()) * loyalty_config.to_amount) / loyalty_config.points;
 					if( amount_to_redeem <= (order.get_due() || order.get_total_with_tax() ) ){
@@ -134,7 +133,6 @@ odoo.define('loyalty_point.pos', function (require) {
 	    				alert(_t("Can not redeem more than order due."));
 	    			}
 				} else {
-	    			// alert(_t("Input must be <= "+ total_points));
 	    			alert(_t("Input must be <= "+ remaining_loyalty_points));
 				}
 			} else {
@@ -150,17 +148,14 @@ odoo.define('loyalty_point.pos', function (require) {
 		    	self.el.querySelector('.redeem_loyalty_input').addEventListener('keyup', function(e){
 					if($.isNumeric($(this).val())){
 		    			var remaining_loyalty_points = order.get_client().remaining_loyalty_points - order.get_loyalty_redeemed_point();
-		    			var total_points = order.get_client().total_points - order.get_loyalty_redeemed_point();
 		    			var amount = order.get_loyalty_amount_by_point( Number($(this).val() ));
 
 		    			$('.point_to_amount').text(self.format_currency(amount));
 		    			if(Number($(this).val()) > remaining_loyalty_points){
-						// if(Number($(this).val()) > total_points){
 		    				alert("Can not redeem more than your remaining points");
 		    				$(this).val(0);
 		    				$('.point_to_amount').text('0.00');
 		    			}
-						// cari tau
 		    			if(amount > (order.get_due() || order.get_total_with_tax())){
 		    				alert("Loyalty Amount exceeding Due Amount");
 		    				$(this).val(0);
@@ -171,11 +166,41 @@ odoo.define('loyalty_point.pos', function (require) {
 		    		}
 		    	});
 	    	}
-
+			this.render_table_loyalty_points();
 		},
 		close: function() {
 			window.document.body.addEventListener('keypress', this.payment_self.keyboard_handler);
 			window.document.body.addEventListener('keydown', this.payment_self.keyboard_keydown_handler);
+		},
+		render_table_loyalty_points: function() {
+			var self = this;
+			var order = this.pos.get_order();
+			var client = this.pos.get_order().get_client()
+			var table_loyalty_points = '<tr><th>Point</th><th>Tanggal Kadaluarsa</th></tr>';
+
+			if(client){
+				var partner_id = client.id;
+				if(partner_id){
+					new Model('loyalty.point.record')
+						.query(['points', 'expired_date'])
+						.filter([
+							['partner_id', '=', partner_id],
+							['status', '=', 1]
+						])
+						.limit(3)
+						.all()
+						.then(function(records){
+							records.map((record) => {
+								table_loyalty_points += '<tr>'
+								table_loyalty_points += '<td>'+record.points+'</td>'
+								table_loyalty_points += '<td>'+record.expired_date+'</td>'
+								table_loyalty_points += '</tr>';
+							})
+						})
+						console.log(table_loyalty_points)
+						$('#table_loyalty_points tbody').html(table_loyalty_points);
+				}
+			}
 		}
 	});
     gui.define_popup({name:'redeem_loyalty_points', widget: RedeemLoyaltyPointsPopup});
@@ -289,18 +314,6 @@ odoo.define('loyalty_point.pos', function (require) {
 			}
 			return 0;
 		},
-		check_member_status: function() {
-			var order = this.pos.get_order();
-			const is_member = (order.attributes.client !== null) ? order.attributes.client.member_status : false;
-
-			return is_member;
-		},
-		enable_loyalty_button: function() {
-			document.getElementsByClassName('js_redeem_loyalty_point')[0].classList.remove('oe_hidden');
-		},
-		disable_loyalty_button: function() {
-			document.getElementsByClassName('js_redeem_loyalty_point')[0].classList.add('oe_hidden');
-		},
 	});
 
 	screens.OrderWidget.include({
@@ -313,7 +326,7 @@ odoo.define('loyalty_point.pos', function (require) {
 			}
 			this.hidden_loyalty_info_cart();
 			if( order.get_client() ) {
-				var total_points = this._calculate_earned_point();
+				var total_points = order._calculate_earned_point( order.get_total_with_tax(), order.get_loyalty_redeemed_point() || 0.00 );
 				
 				!total_points ? this.hidden_loyalty_info_cart() : this.show_loyalty_info_cart();
 
@@ -325,20 +338,6 @@ odoo.define('loyalty_point.pos', function (require) {
 				}
 			}
 		},
-		_calculate_earned_point: function() {
-			var order = this.pos.get_order();
-			const partner_id = ( order.attributes.client !== null ) ? order.attributes.client.id : false;
-			const member_loyalty_level_id = ( order.attributes.client !== null ) ? order.attributes.client.member_loyalty_level_id[0] : false;
-
-			if( partner_id && member_loyalty_level_id ) {
-				const loyalty_config = this.pos.loyalty_level_configuration[member_loyalty_level_id];
-				const earned_points = ( (order.get_total_with_tax() - order.get_loyalty_redeemed_point()) * loyalty_config.point_calculation ) / 100;
-
-				return (order.get_total_with_tax() - order.get_loyalty_redeemed_point()) >= loyalty_config.minimum_purchase ? earned_points : 0;
-			}
-			
-			return 0;
-		},
 		hidden_loyalty_info_cart: function() {
 			if( document.getElementsByClassName('loyalty_info_cart')[0] ){
 				document.getElementsByClassName('loyalty_info_cart')[0].classList.add('oe_hidden');
@@ -348,24 +347,6 @@ odoo.define('loyalty_point.pos', function (require) {
 			if( document.getElementsByClassName('loyalty_info_cart')[0] ){
 				document.getElementsByClassName('loyalty_info_cart')[0].classList.remove('oe_hidden');
 			}
-		},
-	});
-
-	screens.ClientListScreenWidget.include({
-		init: function(parent, options) {
-			this._super(parent, options);
-		},
-
-		show: function() {
-			this._super();
-
-			var order = this.pos.get_order();
-
-			this.$('.next').click(function() {
-				order.is_member = order.check_member_status();
-				order.is_member ? order.enable_loyalty_button() : order.disable_loyalty_button();
-
-			});
 		},
 	});
 
@@ -380,21 +361,28 @@ odoo.define('loyalty_point.pos', function (require) {
 			var order = this.pos.get_order();
 
 			this.$('.js_redeem_loyalty_point').click(function() {
-				if( order.is_member ) {
-					if( order.get_client().total_points > 0 ){
-						self.show_popup_redeem_loyalty();
-					} else {
-						self.gui.show_popup('error', {
-							title: _t("Loyalty Points"),
-							body: _t(order.get_client().name + " have 0 points to redeem."),
-						});
+				if( order.get_client() ){
+					if( order.get_client().member_status ) {
+						if( order.get_client().total_remaining_points > 0 ){
+							self.show_popup_redeem_loyalty();
+						} else {
+							self.gui.show_popup('error', {
+								title: _t("Loyalty Points"),
+								body: _t(order.get_client().name + " memiliki 0 point untuk melakukan redeem"),
+							});
+						}
 					}
+				} else {
+					self.gui.show_popup('error', {
+						title: _t("Loyalty Points"),
+						body: _t("Silahkan pilih customer terlebih dahulu!"),
+					});
 				}
 			});
 		},
 		show_popup_redeem_loyalty: function() {
 			var order = this.pos.get_order();
-			if( order.get_client() && order.is_member ) {
+			if( order.get_client() && order.get_client().member_status ) {
 				this.gui.show_popup('redeem_loyalty_points', {payment_self: this});
 			}
 		},

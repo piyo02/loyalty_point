@@ -7,12 +7,23 @@
             <field name="inherit_id" ref="account.view_account_payment_invoice_form" />
             <field name="priority" eval="20"/>
             <field name="arch" type="xml">
-                <div name="/form/sheet/group/group" position="inside">
-                    <field name="redeem_point"/>
-                    <field name="redeem_amount"/>
-                    <field name="total_points"/>
-                    <!-- <field name="loyalty_point"/> -->
-                </div>
+                <xpath expr="//form//sheet//group[1]" position="inside">
+                    <field name="redeem_status" attrs="{'invisible': True}" />
+                    <group attrs="{'invisible': [('redeem_status', '=', False)]}">
+                        <label for="redeem_point"/>
+                        <div>
+                            <field name="redeem_point"/>
+                        </div>
+                        <label for="redeem_amount"/>
+                        <div>
+                            <field name="redeem_amount"/>
+                        </div>
+                        <label for="total_points"/>
+                        <div>
+                            <field name="total_points"/>
+                        </div>
+                    </group>
+                </xpath>
             </field>
         </record>
 

@@ -1,5 +1,5 @@
 from odoo import fields, models, api
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import logging
 _logger = logging.getLogger(__name__)
@@ -20,6 +20,18 @@ class SaleOrderPoint(models.Model):
     partner_id = fields.Many2one('res.partner', string='Customer', required=True)
     points = fields.Float(string='Points')
     sale_order_id = fields.Many2one('sale.order', string='Reference', required=True)
+    status = fields.Integer('Status', compute='_status_point')
+    source = fields.Selection([('so', 'Sale Order'), ('pos', 'Point of Sale')], string='Source Point', default='so')
+
+    @api.multi
+    def _status_point(self):
+        _logger.warning('_status_point')
+        for rec in self:
+            expired_date = datetime.now() + timedelta(days=rec.partner_id.member_loyalty_level_id.expired_day)
+            if rec.expired_date < expired_date:
+                rec.status = 0
+            else:
+                rec.status = 1
 
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
