@@ -3,44 +3,6 @@ from datetime import datetime, timedelta
 import logging
 _logger = logging.getLogger(__name__)
 
-class PosOrderRedeem(models.Model):
-    _name = 'pos.order.redeem'
-
-    pos_order_id = fields.Many2one('pos.order', string='Reference', required=True)
-    partner_id = fields.Many2one('res.partner', string='Customer', required=True)
-    points = fields.Float(string='Points')
-    redeem_amount = fields.Float(string='Redeem Amount')
-    
-class PosOrderPoint(models.Model):
-    _name = 'pos.order.point'
-
-    amount_total = fields.Float('Total Amount', readonly=1)
-    pos_order_id = fields.Many2one('pos.order', string='Reference', required=True)
-    partner_id = fields.Many2one('res.partner', string='Customer', required=True)
-    points = fields.Float(string='Points')
-    expired_date = fields.Datetime(string='Expired Date', compute='_calculate_expired_date')
-    status = fields.Integer('Status', compute='_status_point')
-    source = fields.Selection([('so', 'Sale Order'), ('pos', 'Point of Sale')], string='Source Point', default='pos')
-
-    @api.multi
-    def _status_point(self):
-        for rec in self:
-            expired_date = datetime.now() + timedelta(days=rec.partner_id.member_loyalty_level_id.expired_day)
-            if rec.expired_date < expired_date:
-                rec.status = 0
-            else:
-                rec.status = 1
-
-    @api.multi
-    def _calculate_expired_date(self):
-        for rec in self:
-            loyalty_level_id = self.env['loyalty.level.configuration'].search([
-                ('id', '=', rec.partner_id.member_loyalty_level_id.id)
-            ], limit=1)
-            _logger.warning( rec.pos_order_id.date_order )
-            date = datetime.strptime(rec.pos_order_id.date_order, '%Y-%m-%d %H:%M:%S')
-            rec.expired_date = date + timedelta(days=loyalty_level_id.expired_day)
-
 class PosOrder(models.Model):
     _inherit = 'pos.order'
 
@@ -63,9 +25,8 @@ class PosOrder(models.Model):
     @api.model
     def _process_order(self, order):
         res = super(PosOrder, self)._process_order(order)
-        LoyaltyConfig = self.env['loyalty.config'].search([], limit=1)
-        _logger.warning(order)
-        if LoyaltyConfig.enable_loyalty and res.partner_id:
+        PosConfig = self.env['pos.config'].search([], limit=1)
+        if PosConfig.enable_pos_loyalty and res.partner_id:
             loyalty_level_id = self.env['loyalty.level.configuration'].search([
                 ('id', '=', res.partner_id.member_loyalty_level_id.id)
             ], limit=1)
@@ -77,11 +38,10 @@ class PosOrder(models.Model):
                         'partner_id': res.partner_id.id,
                         'points': order.get('loyalty_earned_point'),
                         'pos_order_id': res.id,
-                        'status': 1,
+                        'state': 'open',
                         'source': 'pos'
                     }
-                    self.env['pos.order.point'].create(point_vals)
-                    self.env['loyalty.point.record'].create(point_vals)
+                    self.env['earned.point.record'].create(point_vals)
 
                 if order.get('loyalty_redeemed_point') > 0:
                     redeemed_vals = {
@@ -90,8 +50,7 @@ class PosOrder(models.Model):
                         'pos_order_id': res.id,
                         'redeem_amount': order.get('loyalty_redeemed_amount'),
                     }
-                    self.env['pos.order.redeem'].create(redeemed_vals)
-                    self.env['redeem.loyalty.point.record'].create(redeemed_vals)
+                    self.env['redeem.point.record'].create(redeemed_vals)
 
         return res
 
@@ -101,12 +60,9 @@ class PosOrder(models.Model):
     @api.multi
     def refund(self):
         res = super(PosOrder, self).refund()
-        LoyaltyPoints = self.env['loyalty.point']
 
-        PosOrderPoint = self.env['pos.order.point']
-        LoyaltyPointRecord = self.env['loyalty.point.record']
-        PosOrderRedeem = self.env['pos.order.redeem']
-        RedeemLoyaltyPointRecord = self.env['redeem.loyalty.point.record']
+        LoyaltyPointRecord = self.env['earned.point.record']
+        RedeemLoyaltyPointRecord = self.env['redeem.point.record']
         
         refund_order_id = self.browse(res.get('res_id'))
 
@@ -118,16 +74,13 @@ class PosOrder(models.Model):
                 'redeem_amount': refund_order_id.total_loyalty_redeem_amount,
                 
             }
-            PosOrderRedeem.create(redeem_val)
             RedeemLoyaltyPointRecord.create(redeem_val)
 
             point_val = {
                 'pos_order_id': refund_order_id.id,
                 'partner_id': self.partner_id.id,
                 'points': refund_order_id.total_loyalty_earned_points * -1,
-                
             }
-            PosOrderPoint.create(point_val)
             LoyaltyPointRecord.create(point_val)
 
             refund_order_id.write({

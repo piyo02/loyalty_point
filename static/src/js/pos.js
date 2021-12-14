@@ -16,7 +16,7 @@ odoo.define('loyalty_point.pos', function (require) {
 	var round_pr = utils.round_precision;
 
     models.load_fields('res.partner', [
-		'card_number', 'member_status', 'member_loyalty_level_id', 'total_points', 'remaining_loyalty_amount', 'remaining_loyalty_points', 'total_remaining_points', 
+		'card_number_lyt', 'member_status', 'member_loyalty_level_id', 'total_points', 'total_remaining_points', 
 	]);
 
     var _super_posmodel = models.PosModel;
@@ -36,16 +36,6 @@ odoo.define('loyalty_point.pos', function (require) {
 							const loyalty_level_configuration = loyalty_level_configurations[index];
 							self.loyalty_level_configuration[ loyalty_level_configuration.id ] = loyalty_level_configuration;
 						}
-					}
-				});
-
-				// load model loyalty config
-				new Model('loyalty.config').call('search_read',
-						[domain=[], fields=[], offset=0, limit=1, sort='id'], {}, {async: false})
-				.then(function( loyalty_config ){
-					self.loyalty_config = {};
-					if( loyalty_config ){
-						self.loyalty_config = loyalty_config;
 					}
 				});
 			});
@@ -99,8 +89,8 @@ odoo.define('loyalty_point.pos', function (require) {
 			const loyalty_config = this.pos.loyalty_level_configuration[member_loyalty_level_id];
 
 			if( redeem_point_input.val() && $.isNumeric(redeem_point_input.val()) && Number(redeem_point_input.val()) > 0 ) {
-				var remaining_loyalty_points = order.get_client().remaining_loyalty_points - order.get_loyalty_redeemed_point(); 
-				if( Number(redeem_point_input.val()) <= remaining_loyalty_points ) {
+				var total_remaining_points = order.get_client().total_remaining_points - order.get_loyalty_redeemed_point(); 
+				if( Number(redeem_point_input.val()) <= total_remaining_points ) {
 					var amount_to_redeem = (Number(redeem_point_input.val()) * loyalty_config.to_amount) / loyalty_config.points;
 					if( amount_to_redeem <= (order.get_due() || order.get_total_with_tax() ) ){
 						if( self.pos.config.loyalty_journal_id ){
@@ -133,7 +123,7 @@ odoo.define('loyalty_point.pos', function (require) {
 	    				alert(_t("Can not redeem more than order due."));
 	    			}
 				} else {
-	    			alert(_t("Input must be <= "+ remaining_loyalty_points));
+	    			alert(_t("Input must be <= "+ total_remaining_points));
 				}
 			} else {
 	    		alert(_t("Invalid Input"));
@@ -147,11 +137,11 @@ odoo.define('loyalty_point.pos', function (require) {
 			if(self.el.querySelector('.redeem_loyalty_input')){
 		    	self.el.querySelector('.redeem_loyalty_input').addEventListener('keyup', function(e){
 					if($.isNumeric($(this).val())){
-		    			var remaining_loyalty_points = order.get_client().remaining_loyalty_points - order.get_loyalty_redeemed_point();
+		    			var total_remaining_points = order.get_client().total_remaining_points - order.get_loyalty_redeemed_point();
 		    			var amount = order.get_loyalty_amount_by_point( Number($(this).val() ));
 
 		    			$('.point_to_amount').text(self.format_currency(amount));
-		    			if(Number($(this).val()) > remaining_loyalty_points){
+		    			if(Number($(this).val()) > total_remaining_points){
 		    				alert("Can not redeem more than your remaining points");
 		    				$(this).val(0);
 		    				$('.point_to_amount').text('0.00');
@@ -181,11 +171,11 @@ odoo.define('loyalty_point.pos', function (require) {
 			if(client){
 				var partner_id = client.id;
 				if(partner_id){
-					new Model('loyalty.point.record')
+					new Model('earned.point.record')
 						.query(['points', 'expired_date'])
 						.filter([
 							['partner_id', '=', partner_id],
-							['status', '=', 1]
+							['state', '=', 'open']
 						])
 						.limit(3)
 						.all()

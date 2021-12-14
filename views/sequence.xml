@@ -1,0 +1,26 @@
+<odoo>
+    <data noupdate="1">
+
+        <record id="seq_loyalty_level_configuration" model="ir.sequence">
+            <field name="name">Loyalty Level Configuration</field>
+            <field name="code">loyalty.level.configuration</field>
+            <field name="prefix">LYT-LVL-</field>
+            <field name="padding">3</field>
+        </record>
+
+        <record id="seq_record_loyalty_earned_point" model="ir.sequence">
+            <field name="name">Record Loyalty Earned Point</field>
+            <field name="code">loyalty.point.record</field>
+            <field name="prefix">LYT/EARN/</field>
+            <field name="padding">3</field>
+        </record>
+
+        <record id="seq_record_loyalty_earned_point" model="ir.sequence">
+            <field name="name">Record Loyalty Redeem Point</field>
+            <field name="code">redeem.loyalty.point.record</field>
+            <field name="prefix">LYT/EARN/</field>
+            <field name="padding">3</field>
+        </record>
+
+    </data>
+</odoo>

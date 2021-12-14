@@ -10,15 +10,15 @@
                 <page name="sales_purchases" position="after">
                     <page string="Loyalty" name="loyalty">
                         <group>
-                            <group string="Loyalty" name="loyalty_form">
+                            <group name="loyalty_form">
                                 <field name="member_status"/>
-                                <field name="card_number" attrs="{'invisible': [('member_status', '=', False)]}"/>
+                                <field name="card_number_lyt" attrs="{'invisible': [('member_status', '=', False)]}"/>
                                 <field name="member_loyalty_level_id" attrs="{'invisible': [('member_status', '=', False)]}"/>
-                                <field name="total_points" attrs="{'invisible': [('member_status', '=', False)]}"/>
                             </group>
                             <group attrs="{'invisible': [('member_status', '=', False)]}">
-                                <field name="remaining_loyalty_amount"/>
-                                <field name="remaining_loyalty_points"/>
+                                <field name="total_points" attrs="{'invisible': [('member_status', '=', False)]}"/>
+                                <field name="total_redeem_points"/>
+                                <field name="total_exp_earned_points"/>
                                 <field name="total_remaining_points"/>
                             </group>
                         </group>
@@ -27,26 +27,102 @@
             </field>
         </record>
 
-        <record id="view_loyalty_point_history_tree" model="ir.ui.view">
-            <field name="name">loyalty.point.record.tree</field>
-            <field name="model">loyalty.point.record</field>
+        <!-- Earned Point -->
+        <record id="view_earned_point_history_tree" model="ir.ui.view">
+            <field name="name">earned.point.record.tree</field>
+            <field name="model">earned.point.record</field>
             <field name="priority">2</field>
             <field name="arch" type="xml">
-                <tree string="Loyalty Point" create="0">
+                <tree string="Earned Point" create="0">
                     <field name="pos_order_id" />
                     <field name="sale_order_id" />
                     <field name="expired_date"/> 
+                    <field name="state"/>
                     <field name="points"/>
                 </tree>
             </field>
         </record>
 
-        <record id="view_earned_loyalty_point_form" model="ir.ui.view">
-            <field name="name">loyalty.point.record.form.view</field>
-            <field name="model">loyalty.point.record</field>
+        <record id="view_earned_point_form" model="ir.ui.view">
+            <field name="name">earned.point.record.form.view</field>
+            <field name="model">earned.point.record</field>
             <field name="arch" type="xml">
-                <form>
-                    <div>
+                <form string="Earned Point">
+                    <sheet>
+                        <div class="oe_title">
+                            <field name="ref" />
+                        </div>
+                        <group>
+                            <group>
+                                <field name="pos_order_id" attrs="{'invisible': [('pos_order_id', '=', False)]}"/>
+                                <field name="sale_order_id" attrs="{'invisible': [('sale_order_id', '=', False)]}"/>
+                                <field name="partner_id"/>
+                                <field name="state"/>
+                            </group>
+                            <group>
+                                <field name="points"/>
+                                <field name="expired_date"/>
+                                <field name="source"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record> 
+
+        <record id="earned_point_view_search" model="ir.ui.view">
+            <field name="name">earned.point.record.search</field>
+            <field name="model">earned.point.record</field>
+            <field name="arch" type="xml">
+                <search string="Search Earned Point">
+                    <group string="Group By">
+                        <filter name="src_doc" string="Source Point" context="{'group_by': 'source'}"/>
+                        <filter name="status_point" string="Status Point" context="{'group_by': 'state'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="act_res_partner_2_earned_point" model="ir.actions.act_window">
+            <field name="name">Earned Point</field>
+            <field name="res_model">earned.point.record</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="view_earned_point_history_tree"/>
+            <field name="domain">[('partner_id', '=', active_id)]</field>
+            <field name="context">{'search_default_partner_id': active_id}</field>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="action_earned_point_history_tree">
+            <field name="sequence" eval="1"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_earned_point_history_tree"/>
+            <field name="act_window_id" ref="act_res_partner_2_earned_point"/>
+        </record>
+
+        <!-- Redeem Point -->
+        <record id="view_redeem_point_history_tree" model="ir.ui.view">
+            <field name="name">redeem.point.record.tree</field>
+            <field name="model">redeem.point.record</field>
+            <field name="priority">2</field>
+            <field name="arch" type="xml">
+                <tree string="Redeem Point" create="0">
+                    <field name="pos_order_id" />
+                    <field name="sale_order_id" />
+                    <field name="points"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_redeem_point_form" model="ir.ui.view">
+            <field name="name">redeem.point.record.form.view</field>
+            <field name="model">redeem.point.record</field>
+            <field name="arch" type="xml">
+                <form string="Redeem Point">
+                    <sheet>
+                        <div class="oe_title">
+                            <field name="ref" />
+                        </div>
                         <group>
                             <group>
                                 <field name="pos_order_id" attrs="{'invisible': [('pos_order_id', '=', False)]}"/>
@@ -55,32 +131,44 @@
                             </group>
                             <group>
                                 <field name="points"/>
-                                <field name="expired_date"/>
-                                <field name="source"/>
+                                <field name="use"/>
                             </group>
                         </group>
-                    </div>
+                    </sheet>
                 </form>
             </field>
-        </record> 
+        </record>
 
-        <record id="act_res_partner_2_loyalty_point" model="ir.actions.act_window">
-            <field name="name">Loyalty Point</field>
-            <field name="res_model">loyalty.point.record</field>
+        <record id="redeem_point_view_search" model="ir.ui.view">
+            <field name="name">redeem.point.record.search</field>
+            <field name="model">redeem.point.record</field>
+            <field name="arch" type="xml">
+                <search string="Search Redeem Point">
+                    <group string="Group By">
+                        <filter name="src_doc" string="Use Point" context="{'group_by': 'use'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="act_res_partner_2_redeem_point" model="ir.actions.act_window">
+            <field name="name">Redeem Point</field>
+            <field name="res_model">redeem.point.record</field>
             <field name="type">ir.actions.act_window</field>
             <field name="view_type">form</field>
-            <field name="view_id" ref="view_loyalty_point_history_tree"/>
+            <field name="view_id" ref="view_redeem_point_history_tree"/>
             <field name="domain">[('partner_id', '=', active_id)]</field>
             <field name="context">{'search_default_partner_id': active_id}</field>
         </record>
 
-        <record model="ir.actions.act_window.view" id="action_loyalty_point_history_tree">
+        <record model="ir.actions.act_window.view" id="action_redeem_point_history_tree">
             <field name="sequence" eval="1"/>
             <field name="view_mode">tree</field>
-            <field name="view_id" ref="view_loyalty_point_history_tree"/>
-            <field name="act_window_id" ref="act_res_partner_2_loyalty_point"/>
+            <field name="view_id" ref="view_redeem_point_history_tree"/>
+            <field name="act_window_id" ref="act_res_partner_2_redeem_point"/>
         </record>
 
+        <!-- Inherit Partner View add Button Earned and Redeem -->
         <record id="res_partner_view_buttons_loyalty_point" model="ir.ui.view">
             <field name="name">res.partner.view.buttons</field>
             <field name="model">res.partner</field>
@@ -88,10 +176,15 @@
             <field name="priority" eval="20"/>
             <field name="arch" type="xml">
                 <div name="button_box" position="inside">
-                    <button class="oe_stat_button" type="action" name="%(loyalty_point.act_res_partner_2_loyalty_point)d" 
+                    <button class="oe_stat_button" type="action" name="%(loyalty_point.act_res_partner_2_earned_point)d" 
                         attrs="{'invisible': [('member_status', '=', False)]}"
                         icon="fa-usd">
-                        <field string="Loyalty" name="loyalty_point_count" widget="statinfo"/>
+                        <field string="Earned" name="earned_point_count" widget="statinfo"/>
+                    </button> 
+                    <button class="oe_stat_button" type="action" name="%(loyalty_point.act_res_partner_2_redeem_point)d" 
+                        attrs="{'invisible': [('member_status', '=', False)]}"
+                        icon="fa-usd">
+                        <field string="Redeem" name="redeem_point_count" widget="statinfo"/>
                     </button>     
                 </div>
             </field>

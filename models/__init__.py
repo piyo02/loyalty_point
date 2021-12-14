@@ -1,4 +1,4 @@
-import account_invoice
+import account_payment
 import loyalty
 import point_of_sale
 import res_company

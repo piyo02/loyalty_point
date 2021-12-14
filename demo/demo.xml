@@ -19,11 +19,5 @@
             <field name="to_amount">1</field>
         </record>
 
-        <record id="data_demo_loyalty_config_1" model="loyalty.config">
-            <field name="enable_loyalty">True</field>
-            <field model="account.journal" name="loyalty_journal_id" search="[('id', '=', 9)]"/>
-            <field model="account.account" name="account_id" search="[('id', '=', 30)]"/>
-        </record>
-
     </data>
 </odoo>

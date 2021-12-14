@@ -9,7 +9,7 @@ class AccountPayment(models.Model):
 
     redeem_point = fields.Float('Redeem Point')
     redeem_amount = fields.Float('Amount Total from Redeem Point', readonly=True, compute='_calculate_redeem_amount')
-    total_points = fields.Float('Total Points')
+    total_points = fields.Float('Remaining Points', readonly=True)
     redeem_status = fields.Boolean('Use Redeem Point', default=False)
 
     @api.one
@@ -44,7 +44,7 @@ class AccountPayment(models.Model):
 
                 partner = rec.invoice_ids.partner_id
                 if partner:
-                    rec.total_points = partner.remaining_loyalty_points
+                    rec.total_points = partner.total_remaining_points
         
 
     @api.onchange('amount', 'redeem_amount')
@@ -66,13 +66,13 @@ class AccountPayment(models.Model):
     @api.multi
     @api.onchange('redeem_point')
     def onchange_redeem_point(self):
-        _logger.warning('onchange_redeem_point')
         for rec in self:
             if rec.redeem_point:
                 rec.amount = rec.amount - rec.redeem_point
+
                 rec.payment_difference = 0.00
                 
-                total_points = rec.invoice_ids.partner_id.remaining_loyalty_points
+                total_points = rec.invoice_ids.partner_id.total_remaining_points
                 if rec.redeem_point and rec.invoice_ids.partner_id.member_status:
                     if rec.redeem_point > total_points:
                         rec.redeem_point = 0.00
@@ -84,6 +84,9 @@ class AccountPayment(models.Model):
                         }
                     rec.redeem_amount = rec.redeem_point * rec.invoice_ids.partner_id.member_loyalty_level_id.to_amount
                 self._check_available_payment()
+            else:
+                rec.amount = rec.invoice_ids.residual - rec.payment_difference
+                rec.redeem_amount = 0.00
 
     @api.multi
     def post(self):
@@ -91,8 +94,6 @@ class AccountPayment(models.Model):
             res = super(AccountPayment, self).post()
 
             user = self.env['res.users'].browse(self.env.uid)
-            SaleOrderPoint = self.env['sale.order.point']
-            SaleOrderRedeem = self.env['sale.order.redeem']
             partner = self.invoice_ids.partner_id
             member_loyalty = partner.member_loyalty_level_id
 
@@ -118,8 +119,7 @@ class AccountPayment(models.Model):
                                     'redeem_amount': redeem_amount,
                                     'sale_order_id': sale_order.id,
                                 }
-                                SaleOrderRedeem.create(redeemed_vals)
-                                self.env['redeem.loyalty.point.record'].create(redeemed_vals)
+                                self.env['redeem.point.record'].create(redeemed_vals)
 
                                 # create journal redeem point
                                 payment = self.create_payment_loyalty(
@@ -127,7 +127,7 @@ class AccountPayment(models.Model):
                                     user.company_id.loyalty_journal_id,
                                     redeem_amount,
                                     self.payment_date,
-                                    self.communication,
+                                    invoice.name, # self.communication,
                                     invoice.id,
                                 )
                                 for aml in payment.move_line_ids:
@@ -143,11 +143,10 @@ class AccountPayment(models.Model):
                                     'partner_id': partner.id,
                                     'points': earned_point,
                                     'sale_order_id': sale_order.id,
-                                    'status': 1,
+                                    'state': 'open',
                                     'source': 'so'
                                 }
-                                SaleOrderPoint.create(point_vals)
-                                self.env['loyalty.point.record'].create(point_vals)
+                                self.env['earned.point.record'].create(point_vals)
             return res
 
     def create_payment_loyalty(self, partner_id=None, journal=None, redeem_amount=0.00, payment_date=None, communication=None, invoice=None):

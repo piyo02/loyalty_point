@@ -1,9 +1,9 @@
 {
-    'name': 'Loyalty Point',
+    'name': 'Loyalty Member',
     'category': 'Hidden',
-    'summary': 'This module allows customers earn loyalty points.',
+    'summary': 'Implement Loyalty Member in POS Order and Sale Order',
     'description': """
-This module allows customers earn loyalty points.
+Config:
 """,
     'author': 'TechnoIndo',
     'website': 'http://www.technoindo.com',
@@ -13,8 +13,10 @@ This module allows customers earn loyalty points.
         'views/account_payment_view.xml',
         'views/loyalty_config_view.xml',
         'views/loyalty_point.xml',
-        # 'views/point_of_sale.xml',
-        # 'views/sale_order.xml',
+        'views/point_of_sale.xml',
+        'views/sale_order.xml',
+        'views/scheduler.xml',
+        'views/sequence.xml',
         'views/view_partner.xml',
         'wizards/sale_config_view.xml',
     ],

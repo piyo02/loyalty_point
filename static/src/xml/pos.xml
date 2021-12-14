@@ -24,7 +24,7 @@
 							</colgroup>
 		            		<tr>
 		            			<td>Your Total Points: </td>
-		            			<td><t t-esc="widget.pos.get_order().get_client().remaining_loyalty_points.toFixed(2) - widget.pos.get_order().get_loyalty_redeemed_point()" /></td>
+		            			<td><t t-esc="widget.pos.get_order().get_client().total_remaining_points.toFixed(2) - widget.pos.get_order().get_loyalty_redeemed_point()" /></td>
 		            		</tr>
 		            		<tr>
 		            			<td> <t t-esc="widget.pos.loyalty_level_configuration[ widget.pos.get_order().attributes.client.member_loyalty_level_id[0] ].points" /> Point = </td>
