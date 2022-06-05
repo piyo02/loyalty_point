@@ -16,7 +16,7 @@ class SaleOrder(models.Model):
     def _check_member_status(self):
         self.ensure_one()
         for rec in self:
-            enable_pos_loyalty = rec.env.user.company_id.enable_pos_loyalty
+            enable_pos_loyalty = self.env['ir.values'].get_default('sale.config.settings', 'enable_pos_loyalty')
             if enable_pos_loyalty and rec.partner_id.member_status and rec.partner_id.total_remaining_points:
                 rec.available_redeem_point = True
                 return

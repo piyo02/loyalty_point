@@ -44,11 +44,12 @@ class EarnedPointRecord(models.Model):
         return super(EarnedPointRecord, self).create(vals)
 
     def cron_expire_earned_point(self):
-        expired_date = datetime.now() + timedelta(days=self.partner_id.member_loyalty_level_id.expired_day)
-        loyalty_date =  datetime.strptime(self.expired_date, '%Y-%m-%d %H:%M:%S')
-        
-        if loyalty_date < expired_date:
-            self.write({'state': 'expired'})
+        if self.expired_date:
+            expired_date = datetime.now() + timedelta(days=self.partner_id.member_loyalty_level_id.expired_day)
+            loyalty_date =  datetime.strptime(self.expired_date, '%Y-%m-%d %H:%M:%S')
+            
+            if loyalty_date < expired_date:
+                self.write({'state': 'expired'})
 
 class RedeemPointRecord(models.Model):
     _name = 'redeem.point.record'

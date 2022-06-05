@@ -122,9 +122,13 @@ class AccountPayment(models.Model):
                                 self.env['redeem.point.record'].create(redeemed_vals)
 
                                 # create journal redeem point
+                                loyalty_journal_id = self.env['ir.values'].get_default('sale.config.settings', 'loyalty_journal_id') or 1
+                                journal = self.env['account.journal'].search([
+                                    ('id', '=', loyalty_journal_id )
+                                ], limit=1)
                                 payment = self.create_payment_loyalty(
                                     partner.id,
-                                    user.company_id.loyalty_journal_id,
+                                    journal,
                                     redeem_amount,
                                     self.payment_date,
                                     invoice.name, # self.communication,

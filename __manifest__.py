@@ -8,7 +8,12 @@ Config:
     'author': 'TechnoIndo',
     'website': 'http://www.technoindo.com',
     'version': '1.0.1',
-    'depends': ['base', 'point_of_sale', 'sale'],
+    'depends': [
+        'base',
+        'point_of_sale',
+        'sale',
+        'config_cashback_loyalty',
+    ],
     "data": [
         'views/account_payment_view.xml',
         'views/loyalty_config_view.xml',
@@ -19,6 +24,7 @@ Config:
         'views/sequence.xml',
         'views/view_partner.xml',
         'wizards/sale_config_view.xml',
+        'security/ir.model.access.csv',
     ],
     'images': ['static/description/icon.png'],
     'qweb': [

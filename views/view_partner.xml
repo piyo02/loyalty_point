@@ -1,7 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-        <record id="view_partner_loyalty_form" model="ir.ui.view">
+    <record id="view_partner_loyalty_form" model="ir.ui.view">
+        <field name="name">res.partner.loyalty.form.view</field>
+        <field name="model">res.partner</field>
+        <field name="priority">10</field>
+        <field name="inherit_id" ref="config_cashback_loyalty.view_partner_config_member"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='member']" position="inside">
+                <group attrs="{'invisible': [('config_member', '!=', 'loyalty')]}">
+                    <group name="loyalty_form">
+                        <field name="card_number_lyt"/>
+                        <field name="member_loyalty_level_id"/>
+                    </group>
+                    <group>
+                        <field name="total_points"/>
+                        <field name="total_redeem_points"/>
+                        <field name="total_exp_earned_points"/>
+                        <field name="total_remaining_points"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+        <!-- <record id="view_partner_loyalty_form" model="ir.ui.view">
             <field name="name">res.partner.loyalty.form.view</field>
             <field name="model">res.partner</field>
             <field name="priority">10</field>
@@ -25,7 +48,7 @@
                     </page>
                 </page>
             </field>
-        </record>
+        </record> -->
 
         <!-- Earned Point -->
         <record id="view_earned_point_history_tree" model="ir.ui.view">
