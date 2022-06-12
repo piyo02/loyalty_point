@@ -37,6 +37,8 @@ class EarnedPointRecord(models.Model):
     sale_order_id = fields.Many2one('sale.order', string='Sale Order', readonly=1)
     source = fields.Selection([('so', 'Sale Order'), ('pos', 'POS Order')], string='Source Point', default='so')
     state = fields.Selection([('open', 'Can Use'), ('expired', 'Expired')], string='Point State', default='open')
+    date_obtained = fields.Datetime('Date Obtained', readonly=True, default=fields.Datetime.now)
+    total_current_point = fields.Float('Total Current Point', readonly=1)
 
     @api.model
     def create(self, vals):
@@ -44,11 +46,12 @@ class EarnedPointRecord(models.Model):
         return super(EarnedPointRecord, self).create(vals)
 
     def cron_expire_earned_point(self):
-        expired_date = datetime.now() + timedelta(days=self.partner_id.member_loyalty_level_id.expired_day)
-        loyalty_date =  datetime.strptime(self.expired_date, '%Y-%m-%d %H:%M:%S')
-        
-        if loyalty_date < expired_date:
-            self.write({'state': 'expired'})
+        if self.expired_date:
+            expired_date = datetime.now() + timedelta(days=self.partner_id.member_loyalty_level_id.expired_day)
+            loyalty_date =  datetime.strptime(self.expired_date, '%Y-%m-%d %H:%M:%S')
+            
+            if loyalty_date < expired_date:
+                self.write({'state': 'expired'})
 
 class RedeemPointRecord(models.Model):
     _name = 'redeem.point.record'
@@ -60,9 +63,20 @@ class RedeemPointRecord(models.Model):
     redeem_amount = fields.Float(string='Redeem Amount', required=True, readonly=1)
     sale_order_id = fields.Many2one('sale.order', string='Sale Order', readonly=1)
     use = fields.Selection([('so', 'Sale Order'), ('pos', 'POS Order')], string='Source Point', default='so')
+    date_used = fields.Datetime('Date Used', readonly=True, default=fields.Datetime.now)
 
     @api.model
     def create(self, vals):
         vals['ref'] = self.env['ir.sequence'].next_by_code('redeem.point.record')
         return super(RedeemPointRecord, self).create(vals)
 
+# No. , 
+# Tgl. Perolehan point, 
+# Tggl. Penukaran Point, 
+# Kode Trx SO/POS, 
+# Jumlah Point, 
+# baris pertama saldo awal point tggl awal periode yg di pilih, 
+# datanya,
+# total point yg diperoleh dr periode tggl yg di pilih
+# total point expired
+# total poin yg bisa di gunakan / customer

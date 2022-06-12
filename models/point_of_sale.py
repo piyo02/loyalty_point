@@ -25,11 +25,13 @@ class PosOrder(models.Model):
     @api.model
     def _process_order(self, order):
         res = super(PosOrder, self)._process_order(order)
-        PosConfig = self.env['pos.config'].search([], limit=1)
-        if PosConfig.enable_pos_loyalty and res.partner_id:
+        pos_session_id = order.get('pos_session_id')
+        session = self.env['pos.session'].browse(pos_session_id)
+        if session.config_id.enable_pos_loyalty and res.partner_id:
             loyalty_level_id = self.env['loyalty.level.configuration'].search([
                 ('id', '=', res.partner_id.member_loyalty_level_id.id)
             ], limit=1)
+            _logger.warning( loyalty_level_id )
             if loyalty_level_id:
                 if order.get('loyalty_earned_point') > 0 and res.partner_id.member_status:
                     point_vals = {
@@ -39,7 +41,9 @@ class PosOrder(models.Model):
                         'points': order.get('loyalty_earned_point'),
                         'pos_order_id': res.id,
                         'state': 'open',
-                        'source': 'pos'
+                        'source': 'pos',
+                        'date_obtained': datetime.now(),
+                        'total_current_point': int( res.partner_id.total_remaining_points ) + int( order.get('loyalty_earned_point') ),
                     }
                     self.env['earned.point.record'].create(point_vals)
 
@@ -49,8 +53,14 @@ class PosOrder(models.Model):
                         'points': order.get('loyalty_redeemed_point'),
                         'pos_order_id': res.id,
                         'redeem_amount': order.get('loyalty_redeemed_amount'),
+                        'date_used': datetime.now(),
                     }
                     self.env['redeem.point.record'].create(redeemed_vals)
+                    last_earned_point = self.env['earned.point.record'].search([], limit=1, order="id desc").sudo()
+                    last_earned_point.write({
+                        'total_current_point': int( last_earned_point.total_current_point ) - int( order.get('loyalty_redeemed_amount') )
+                    })
+
 
         return res
 
@@ -66,13 +76,12 @@ class PosOrder(models.Model):
         
         refund_order_id = self.browse(res.get('res_id'))
 
-        if refund_order_id:
+        if refund_order_id and self.partner_id:
             redeem_val = {
                 'pos_order_id': refund_order_id.id,
                 'partner_id': self.partner_id.id,
                 'points': refund_order_id.total_loyalty_redeem_points,
-                'redeem_amount': refund_order_id.total_loyalty_redeem_amount,
-                
+                'redeem_amount': refund_order_id.total_loyalty_redeem_amount,          
             }
             RedeemLoyaltyPointRecord.create(redeem_val)
 
@@ -108,5 +117,5 @@ class AccountJournal(models.Model):
                self._context.get('journal_ids')[0][2]:
                args += [['id', 'in', self._context.get('journal_ids')[0][2]]]
             else:
-                return False;
+                return False
         return super(AccountJournal, self).name_search(name, args=args, operator=operator, limit=limit)

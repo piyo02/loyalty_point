@@ -8,7 +8,9 @@
         <field name="arch" type="xml">
             <xpath expr="/form/sheet/group/group[last()]" position="inside">
                 <field name="available_redeem_point" attrs="{'invisible': True}" />
+                <field name="available_loyalty_point" attrs="{'invisible': True}" />
                 <field name="redeem_status" attrs="{'invisible': [('available_redeem_point', '=', False)]}" />
+                <field name="is_get_loyalty_point" attrs="{'invisible': [('available_loyalty_point', '=', False)]}" />
             </xpath>
         </field>
     </record>

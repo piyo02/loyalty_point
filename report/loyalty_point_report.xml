@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <report
+                id="action_report_loyalty_point"
+                string="Loyalty Point Report"
+                model="report.loyalty.point"
+                report_type="qweb-pdf"
+                file="loyalty_point.loyalty_point_report_temp"
+                name="loyalty_point.loyalty_point_report_temp"
+        />
+    </data>
+</odoo>

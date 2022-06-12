@@ -1,0 +1,1 @@
+import loyalty_point_temp

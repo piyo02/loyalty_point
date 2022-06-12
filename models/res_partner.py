@@ -7,7 +7,7 @@ _logger = logging.getLogger(__name__)
 class ResPartner(models.Model):
     _inherit = 'res.partner'
 
-    member_status = fields.Boolean(string='Member Status', default=False)
+    # member_status = fields.Boolean(string='Member Status', default=False)
     card_number_lyt = fields.Char(string='Card Number')
     member_loyalty_level_id = fields.Many2one(comodel_name='loyalty.level.configuration', string='Member Level')
     
